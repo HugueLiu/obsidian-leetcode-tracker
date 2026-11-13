@@ -88,7 +88,7 @@ export default class LeetCodeTrackerPlugin extends Plugin {
     this.addCommand({
       id: "sync-submissions",
       name: "同步提交记录（增量）",
-      callback: () => void this.syncSubmissions(false),
+      callback: () => void this.syncSubmissions(),
     });
     this.addCommand({
       id: "sync-full-history",
@@ -180,7 +180,7 @@ export default class LeetCodeTrackerPlugin extends Plugin {
   private async timedSync(): Promise<void> {
     if (!this.data.settings.cookie) return;
     if (this.syncing) return;
-    await this.syncSubmissions(false, true);
+    await this.syncSubmissions(true);
   }
 
   private async bootstrapProblems(): Promise<void> {
@@ -261,7 +261,7 @@ export default class LeetCodeTrackerPlugin extends Plugin {
     }
   }
 
-  async syncSubmissions(deep: boolean, silent = false): Promise<void> {
+  async syncSubmissions(silent = false): Promise<void> {
     if (this.syncing) {
       if (!silent) new Notice("同步正在进行中");
       return;
@@ -278,20 +278,11 @@ export default class LeetCodeTrackerPlugin extends Plugin {
     }
 
     this.syncing = true;
-    let progress: Notice | null = null;
-    if (deep && !silent) {
-      progress = new Notice("正在深度回溯提交记录…", 0);
-    }
     try {
       const adapter = this.app.vault.adapter;
       const r = await syncSubmissions(this.client, this.problems, this.records, adapter, {
-        // 深度回溯的目的是把历史挖全，所以刻意不传游标 ——
-        // 否则第一页就撞上上次的游标立刻收工，表现就是「深度回溯同步 0 条」。
-        cursorId: deep ? "" : this.data.settings.cursorSubmissionId,
-        maxPages: deep ? 1000 : 30,
-        onPage: progress
-          ? (pages, fetched) => progress?.setMessage(`深度回溯中：已读 ${fetched} 条 / ${pages} 页…`)
-          : undefined,
+        cursorId: this.data.settings.cursorSubmissionId,
+        maxPages: 30,
       });
 
       this.authState = "ok";
@@ -302,7 +293,7 @@ export default class LeetCodeTrackerPlugin extends Plugin {
       // 就永远跳过了（下次从新游标往前追，再也落不到那段）。
       // 现在没追到就保持旧游标，下次继续从旧位置追，靠 submission id 去重。
       const hadCursor = this.data.settings.cursorSubmissionId !== "";
-      if (r.newestId && (!hadCursor || r.reachedCursor || deep)) {
+      if (r.newestId && (!hadCursor || r.reachedCursor)) {
         this.data.settings.cursorSubmissionId = r.newestId;
         this.data.settings.cursorTimestamp = r.newestTimestamp;
       }
@@ -330,7 +321,7 @@ export default class LeetCodeTrackerPlugin extends Plugin {
       );
       parts.push(`本地共 ${this.records.count} 条记录`);
       if (r.pending.length > 0) parts.push(`${r.pending.length} 条未能匹配题目`);
-      if (!r.reachedCursor && !deep) parts.push("可能还有更早的记录，建议深度回溯");
+      if (!r.reachedCursor) parts.push("可能还有更早的记录，可在设置里做全量对齐");
       new Notice(`同步完成：${parts.join("，")}`, 6000);
     } catch (e) {
       if (e instanceof LcError && e.kind === "auth") {
@@ -340,7 +331,6 @@ export default class LeetCodeTrackerPlugin extends Plugin {
       }
       new Notice(describeSyncError(e), 8000);
     } finally {
-      progress?.hide();
       this.syncing = false;
     }
   }

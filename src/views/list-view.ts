@@ -88,7 +88,6 @@ export class ProblemListView extends ItemView {
   private roundStats: RoundStat[] = [];
   private roundBar!: HTMLElement;
   private roundSelect!: HTMLSelectElement;
-  private roundHint!: HTMLElement;
 
   /** 登录态失效横幅（只在 cookie 真失效时出现，普通网络错误不打扰） */
   private authBanner!: HTMLElement;
@@ -165,7 +164,6 @@ export class ProblemListView extends ItemView {
     // 轮次条：有重置历史时才显示
     this.roundBar = root.createDiv({ cls: "lc-roundbar" });
     this.roundSelect = this.roundBar.createEl("select", { cls: "lc-round-select" });
-    this.roundHint = this.roundBar.createDiv({ cls: "lc-round-hint" });
     this.roundSelect.addEventListener("change", () => {
       const v = this.roundSelect.value;
       this.selectedRound = v === "0" ? null : Number(v);
@@ -185,9 +183,20 @@ export class ProblemListView extends ItemView {
     ];
     for (const d of defs) {
       const t = tabs.createDiv({ cls: "lc-tab", text: d.label });
-      t.addEventListener("click", () => {
+      // 计数直接挂在 tab 上，替代原本要靠副标题长句解释的口径
+      t.createSpan({ cls: "lc-tab-count" });
+      t.setAttribute("role", "tab");
+      t.tabIndex = 0;
+      const activate = (): void => {
         this.filterStatus = d.key;
         this.render();
+      };
+      t.addEventListener("click", activate);
+      t.addEventListener("keydown", (ev: KeyboardEvent) => {
+        if (ev.key === "Enter" || ev.key === " ") {
+          ev.preventDefault();
+          activate();
+        }
       });
       this.statusTabs[d.key] = t;
     }
@@ -243,7 +252,7 @@ export class ProblemListView extends ItemView {
       return b;
     };
     btn("提交记录", () => void this.plugin.openRecordsView());
-    btn("刷新状态", () => this.plugin.syncSubmissions(false));
+    btn("同步提交", () => this.plugin.syncSubmissions());
     btn("刷新题库", () => this.plugin.syncProblems());
 
     // 重置全部：两段式确认。误触会清空手动标记且无法恢复，不能用单击直接执行
@@ -359,7 +368,8 @@ export class ProblemListView extends ItemView {
     if (stats.length === 0) return;
 
     this.roundSelect.empty();
-    this.roundSelect.createEl("option", { value: "0", text: "最新状态" });
+    // 轮次总数并入首项文案，省掉单独一行说明
+    this.roundSelect.createEl("option", { value: "0", text: `最新状态 · 共 ${stats.length} 轮` });
     for (let i = stats.length - 1; i >= 0; i--) {
       const s = stats[i];
       const span = `${fmtDateTime(s.start)} → ${s.isCurrent ? "进行中" : fmtDateTime(s.end!)}`;
@@ -369,13 +379,6 @@ export class ProblemListView extends ItemView {
       });
     }
     this.roundSelect.value = this.selectedRound === null ? "0" : String(this.selectedRound);
-
-    const current = stats[stats.length - 1];
-    this.roundHint.setText(
-      this.selectedRound === null
-        ? `共 ${stats.length} 轮　|　第 ${current.index} 轮进行中，已完成 ${current.count} 题`
-        : `共 ${stats.length} 轮`
-    );
   }
 
   private applyFilters(): void {
@@ -413,8 +416,7 @@ export class ProblemListView extends ItemView {
       (r) => !r.problem.retired && (!r.problem.paidOnly || this.plugin.data.settings.showPaid)
     );
     const done = visible.filter((r) => r.status === "done").length;
-    const stale = visible.filter((r) => r.status === "stale").length;
-    // 累计 = 历史上 AC 过的题，不受重置线影响；和 done 并列显示才看得清重置排除了多少
+    // 累计 = 历史上 AC 过的题，不受重置线影响
     const ever = visible.filter((r) =>
       this.plugin.resolver.everDone(r.problem.slug, this.plugin.records.stat(r.problem.slug))
     ).length;
@@ -427,27 +429,22 @@ export class ProblemListView extends ItemView {
       this.headerText.createSpan({ cls: "lc-num", text: String(done) });
       this.headerText.appendText("题");
       this.subtitle.setText(
-        `${fmtDateTime(sel.start)} → ${sel.isCurrent ? "现在" : fmtDateTime(sel.end!)}` +
-          (sel.isCurrent ? "" : "　|　按该时间段内的通过记录统计")
+        `${fmtDateTime(sel.start)} → ${sel.isCurrent ? "现在" : fmtDateTime(sel.end!)}`
       );
     } else {
       this.headerText.empty();
       this.headerText.appendText("本轮已刷");
       this.headerText.createSpan({ cls: "lc-num", text: `${done} / ${visible.length}` });
-      const base = this.plugin.data.reset.globalBaseline;
-      // 把"读到了多少条记录"直接写在副标题里：0 条 = 文件没读到，
-      // 400 条但已刷 0 = 判定逻辑有问题。省得靠猜。
-      const acKnown = this.plugin.acStatus.size;
-      const dataNote =
-        `本地 ${this.plugin.records.count} 条提交记录` +
-        (acKnown > 0 ? `　|　力扣状态补全 ${acKnown} 道` : "");
-      this.subtitle.setText(
-        `累计刷过 ${ever} 道` +
-          (base
-            ? `　|　重置线：${fmtDate(base)}，早于该线的 ${stale} 道不计入本轮`
-            : `　|　未设置重置线，本轮与累计相同`) +
-          `　|　${dataNote}`
-      );
+      this.subtitle.setText(`累计 ${ever} 道`);
+    }
+
+    // 四类题直接以数字摆在 tab 上：全部 / 未刷 / 已刷 / 仅历史，
+    // 不再用一句话解释重置线把多少题排除了
+    const counts: Record<string, number> = { all: visible.length, done: 0, notDone: 0, stale: 0 };
+    for (const r of visible) counts[r.status] = (counts[r.status] ?? 0) + 1;
+    for (const [key, el] of Object.entries(this.statusTabs)) {
+      el.toggleClass("is-active", this.filterStatus === key);
+      el.querySelector(".lc-tab-count")?.setText(String(counts[key] ?? 0));
     }
 
     const expired = this.plugin.authState === "expired";
@@ -455,10 +452,6 @@ export class ProblemListView extends ItemView {
     if (expired) this.authText.setText("登录态已过期，自动同步已暂停");
 
     this.renderAuthBox();
-
-    for (const [key, el] of Object.entries(this.statusTabs)) {
-      el.toggleClass("is-active", this.filterStatus === key);
-    }
 
     this.viewport.scrollTop = 0;
     this.renderRows();

@@ -80,7 +80,7 @@ export class DashboardView extends ItemView {
     if (rows.length === 0) {
       this.root.createDiv({
         cls: "lc-dash-empty",
-        text: "还没有提交记录，先同步一次再看板就有数据了。",
+        text: "还没有提交记录，先同步一次",
       });
       return;
     }
@@ -90,7 +90,6 @@ export class DashboardView extends ItemView {
     this.renderRow2(rows);
     this.renderRow3(rows);
     this.renderRecent(rows);
-    this.root.createDiv({ cls: "lc-dash-foot", text: `数据来自本地 records.csv，共 ${rows.length} 条提交` });
   }
 
   // ---------------------------------------------------------------- KPI
@@ -190,7 +189,6 @@ export class DashboardView extends ItemView {
     const card = this.root.createDiv({ cls: "lc-card" });
     const head = card.createDiv({ cls: "lc-card-head" });
     head.createDiv({ cls: "lc-card-title", text: "提交热力图" });
-    head.createDiv({ cls: "lc-card-hint", text: "最近一年 · 每格一天 · 颜色越深提交越多" });
 
     const heatWrap = card.createDiv({ cls: "lc-heat-wrap" });
     const scroller = heatWrap.createDiv({ cls: "lc-heat" });
@@ -315,7 +313,7 @@ export class DashboardView extends ItemView {
     legend.createDiv({ cls: "lc-heat-legend-label", text: "多" });
     legend.createDiv({
       cls: "lc-heat-max",
-      text: `单日 0 / 1 / 2–3 / 4–7 / 8+ 次 · 最多 ${max} 次`,
+      text: `最近一年 · 单日 0 / 1 / 2–3 / 4–7 / 8+ 次 · 最多 ${max} 次`,
     });
   }
 
@@ -331,7 +329,6 @@ export class DashboardView extends ItemView {
     const card = parent.createDiv({ cls: "lc-card" });
     const head = card.createDiv({ cls: "lc-card-head" });
     head.createDiv({ cls: "lc-card-title", text: "月度提交趋势" });
-    head.createDiv({ cls: "lc-card-hint", text: "最近 12 个月" });
 
     const now = new Date();
     const buckets: { label: string; count: number }[] = [];
@@ -458,7 +455,6 @@ export class DashboardView extends ItemView {
     const card = parent.createDiv({ cls: "lc-card" });
     const head = card.createDiv({ cls: "lc-card-head" });
     head.createDiv({ cls: "lc-card-title", text: "累计刷过的高频标签" });
-    head.createDiv({ cls: "lc-card-hint", text: "Top 8 · 按累计口径" });
 
     const tagCount = new Map<string, number>();
     for (const p of visible) {
@@ -495,7 +491,6 @@ export class DashboardView extends ItemView {
     const card = this.root.createDiv({ cls: "lc-card" });
     const head = card.createDiv({ cls: "lc-card-head" });
     head.createDiv({ cls: "lc-card-title", text: "最近提交" });
-    head.createDiv({ cls: "lc-card-hint", text: "最新 12 条" });
 
     const titleOf = (slug: string) => {
       const p = this.plugin.problems.get(slug);

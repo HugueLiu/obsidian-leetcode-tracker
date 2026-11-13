@@ -273,11 +273,6 @@ body.theme-dark .lc-dash-root {
   padding: 0 var(--lct-s2);
   cursor: pointer;
 }
-.lc-round-hint {
-  font-size: 11.5px;
-  color: var(--lct-text-2);
-}
-
 /* ---------- 6. 状态 tab ---------- */
 .lc-tabs {
   display: flex;
@@ -310,9 +305,9 @@ body.theme-dark .lc-dash-root {
 }
 /* 选中态用描边 + 浅底，而不是整块 accent 实心：一排 tab 全实心会抢标题的层级 */
 .lc-tab.is-active {
-  color: var(--interactive-accent);
-  border-color: color-mix(in srgb, var(--interactive-accent) 55%, transparent);
-  background: color-mix(in srgb, var(--interactive-accent) 12%, transparent);
+  color: var(--lct-strong);
+  border-color: color-mix(in srgb, var(--lct-strong) 55%, transparent);
+  background: color-mix(in srgb, var(--lct-strong) 12%, transparent);
   font-weight: 600;
 }
 /* tab 右侧数字：等宽，防止切换时左右跳 */
@@ -323,7 +318,7 @@ body.theme-dark .lc-dash-root {
   color: var(--lct-text-2);
 }
 .lc-tab.is-active .lc-tab-count {
-  color: var(--interactive-accent);
+  color: var(--lct-strong);
 }
 
 /* ---------- 7. 筛选 ---------- */
@@ -409,7 +404,7 @@ body.theme-dark .lc-dash-root {
 }
 /* 展开时主行轻微高亮，和下面的明细块形成一体 */
 .lc-row.is-expanded .lc-row-main {
-  background: color-mix(in srgb, var(--interactive-accent) 8%, transparent);
+  background: color-mix(in srgb, var(--lct-strong) 8%, transparent);
 }
 /* 左侧状态条：整行一条 2px 竖线，扫一眼就能看出已刷比例 */
 .lc-row::before {
@@ -628,9 +623,9 @@ body.theme-dark .lc-dash-root {
     background var(--lct-dur) var(--lct-ease);
 }
 .lc-cntbtn:hover {
-  color: var(--interactive-accent);
-  border-color: color-mix(in srgb, var(--interactive-accent) 55%, transparent);
-  background: color-mix(in srgb, var(--interactive-accent) 10%, transparent);
+  color: var(--lct-strong);
+  border-color: color-mix(in srgb, var(--lct-strong) 55%, transparent);
+  background: color-mix(in srgb, var(--lct-strong) 10%, transparent);
 }
 .lc-cntbtn.is-empty {
   opacity: 0.4;
@@ -685,7 +680,7 @@ body.theme-dark .lc-dash-root {
 }
 .lc-det-link {
   font-size: 11.5px;
-  color: var(--text-accent, var(--interactive-accent));
+  color: var(--lct-strong);
   cursor: pointer;
   border-radius: var(--lct-r-sm);
 }
@@ -866,13 +861,6 @@ body.theme-dark .lc-dash-root {
   font-size: 13px;
   line-height: 1.7;
 }
-.lc-dash-foot {
-  font-size: 11px;
-  color: var(--lct-text-3);
-  text-align: center;
-  padding-top: var(--lct-s1);
-}
-
 /* ---------- KPI ---------- */
 .lc-kpis {
   display: grid;
@@ -1099,7 +1087,8 @@ body.theme-dark .lc-dash-root {
   transition: background var(--lct-dur) var(--lct-ease);
 }
 .lc-bar-col:hover .lc-bar-fill {
-  background: var(--interactive-accent);
+  background: var(--lct-strong);
+  filter: brightness(1.12);
 }
 .lc-bar-val {
   position: absolute;

@@ -22,7 +22,7 @@ export class TrackerSettingTab extends PluginSettingTab {
     containerEl.createEl("p", {
       cls: "setting-item-description",
       text:
-        "自动同步提交记录需要登录态。打开 leetcode.cn 任一页面 → F12 → Network → 任意 graphql 请求 → 复制请求头里的整条 Cookie 粘到下面。只取 LEETCODE_SESSION 和 csrftoken，其余会被忽略。",
+        "F12 → Network → 任一 graphql 请求 → 复制整条 Cookie 粘贴到下面。只取 LEETCODE_SESSION 与 csrftoken。",
     });
 
     new Setting(containerEl)
@@ -43,7 +43,7 @@ export class TrackerSettingTab extends PluginSettingTab {
 
     if (isEmbeddedLoginAvailable()) {
       loginSetting
-        .setDesc("在插件里打开力扣登录页，登录成功后自动取走 cookie、验证通过才保存。")
+        .setDesc("登录成功后自动取走 cookie 并验证")
         .addButton((b) =>
           b
             .setButtonText("打开登录窗口")
@@ -63,7 +63,7 @@ export class TrackerSettingTab extends PluginSettingTab {
 
     new Setting(containerEl)
       .setName("从剪贴板填入")
-      .setDesc("复制完整 Cookie 后点这里，自动只挑出 LEETCODE_SESSION 和 csrftoken")
+      .setDesc("自动只挑出 LEETCODE_SESSION 与 csrftoken")
       .addButton((b) =>
         b.setButtonText("读取剪贴板").onClick(async () => {
           try {
@@ -168,15 +168,13 @@ export class TrackerSettingTab extends PluginSettingTab {
     new Setting(containerEl)
       .setName("提交记录同步")
       .setDesc(
-        "增量同步：只拉上次之后的新提交，撞到游标就停，几秒完成（单次最多 30 页 / 1200 条）。日常点这个。\n" +
-          "全量对齐：按题目逐道查一遍，把被 2000 条窗口截掉的历史补齐。全局提交列表的 offset 硬上限是 " +
-          "2000 条（2020 年前的记录拿不到），但带上题目参数单题查没有这个限制 —— 平台网页能显示到 2016 年，" +
-          "用的就是这条路。约 15 分钟，按提交 ID 去重，缺多少补多少，中途关掉不会写坏数据。"
+        "增量：只拉上次之后的新提交，撞游标即停（≤1200 条）。\n" +
+          "全量：逐题查一遍，补齐被 2000 条窗口截掉的历史（约 15 分钟），按提交 ID 去重。"
       )
       .addButton((b) =>
         b.setButtonText("增量同步").onClick(async () => {
           b.setDisabled(true);
-          await this.plugin.syncSubmissions(false);
+          await this.plugin.syncSubmissions();
           b.setDisabled(false);
         })
       )
