@@ -1,0 +1,9 @@
+{
+  "id": "leetcode-tracker",
+  "name": "LeetCode Tracker",
+  "version": "0.1.0",
+  "minAppVersion": "1.4.0",
+  "description": "本地维护力扣刷题记录：自动同步题库与提交，可随时把任意题重置回未刷。",
+  "author": "lmh",
+  "isDesktopOnly": false
+}
