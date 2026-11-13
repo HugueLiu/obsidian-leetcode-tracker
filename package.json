@@ -1,12 +1,12 @@
 {
   "name": "leetcode-tracker",
   "version": "0.1.0",
-  "description": "LeetCode 刷题记录追踪（本地 SQLite + 自动同步）",
+  "description": "LeetCode 刷题记录追踪（本地 CSV + 自动同步）",
   "main": "main.js",
   "scripts": {
     "dev": "node esbuild.config.mjs",
     "build": "node esbuild.config.mjs production",
-    "test": "node --experimental-strip-types test/run-tests.ts"
+    "test": "esbuild test/run.ts --bundle --platform=node --format=cjs --target=node18 --outfile=test/out.cjs && node test/out.cjs"
   },
   "keywords": [
     "leetcode",
