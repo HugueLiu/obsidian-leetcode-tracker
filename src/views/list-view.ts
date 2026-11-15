@@ -560,15 +560,14 @@ export class ProblemListView extends ItemView {
       vm.status === "done" ? "已刷" : vm.status === "stale" ? "以前做过" : "未刷"
     );
 
-    // 会员锁槽：每行都占位，会员题在这里放一把锁，其余行留空，
-    // 这样后面所有列的位置都不因会员题而移动
-    const lock = main.createDiv({ cls: "lc-lock" });
+    // 会员锁挂在题号列内部：题号右对齐，锁悬在它左侧的空白处，
+    // 不新增 flex 子元素，所以状态点到题号、以及后面所有列的位置都不动
+    const idEl = main.createDiv({ cls: "lc-id", text: p.frontendId });
     if (p.paidOnly) {
+      const lock = idEl.createSpan({ cls: "lc-lock" });
       setIcon(lock, "lock");
       lock.setAttr("aria-label", "会员题");
     }
-
-    main.createDiv({ cls: "lc-id", text: p.frontendId });
     const titleWrap = main.createDiv({ cls: "lc-title-cell" });
     titleWrap.createDiv({ cls: "lc-title-main", text: p.titleCn || p.title });
     if (p.titleCn && p.title) {
