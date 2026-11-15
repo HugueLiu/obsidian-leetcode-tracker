@@ -1,4 +1,4 @@
-import { ItemView, Menu, Notice, WorkspaceLeaf } from "obsidian";
+import { ItemView, Menu, Notice, WorkspaceLeaf, setIcon } from "obsidian";
 import type LeetCodeTrackerPlugin from "../main";
 import type { Status } from "../domain/status";
 import type { ProblemRow, RecordRow, RoundStat } from "../types";
@@ -560,6 +560,14 @@ export class ProblemListView extends ItemView {
       vm.status === "done" ? "已刷" : vm.status === "stale" ? "以前做过" : "未刷"
     );
 
+    // 会员锁槽：每行都占位，会员题在这里放一把锁，其余行留空，
+    // 这样后面所有列的位置都不因会员题而移动
+    const lock = main.createDiv({ cls: "lc-lock" });
+    if (p.paidOnly) {
+      setIcon(lock, "lock");
+      lock.setAttr("aria-label", "会员题");
+    }
+
     main.createDiv({ cls: "lc-id", text: p.frontendId });
     const titleWrap = main.createDiv({ cls: "lc-title-cell" });
     titleWrap.createDiv({ cls: "lc-title-main", text: p.titleCn || p.title });
@@ -571,9 +579,6 @@ export class ProblemListView extends ItemView {
       cls: `lc-diff lc-diff--${p.difficulty.toLowerCase()}`,
       text: p.difficulty === "EASY" ? "简单" : p.difficulty === "MEDIUM" ? "中等" : "困难",
     });
-
-    // 打开「显示会员题」后，会员题靠这个 pill 自报身份，省得点进去才撞墙
-    if (p.paidOnly) main.createDiv({ cls: "lc-paid", text: "会员" });
 
     const tagsWrap = main.createDiv({ cls: "lc-tags" });
     (p.tagsCn.length ? p.tagsCn : p.tags).slice(0, 2).forEach((t) => {
