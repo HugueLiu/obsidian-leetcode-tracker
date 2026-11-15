@@ -572,6 +572,9 @@ export class ProblemListView extends ItemView {
       text: p.difficulty === "EASY" ? "简单" : p.difficulty === "MEDIUM" ? "中等" : "困难",
     });
 
+    // 打开「显示会员题」后，会员题靠这个 pill 自报身份，省得点进去才撞墙
+    if (p.paidOnly) main.createDiv({ cls: "lc-paid", text: "会员" });
+
     const tagsWrap = main.createDiv({ cls: "lc-tags" });
     (p.tagsCn.length ? p.tagsCn : p.tags).slice(0, 2).forEach((t) => {
       tagsWrap.createDiv({ cls: "lc-tag", text: t });

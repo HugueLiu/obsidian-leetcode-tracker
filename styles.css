@@ -524,6 +524,19 @@ body.theme-dark .lc-dash-root {
   border-color: color-mix(in srgb, var(--lct-err) 26%, transparent);
 }
 
+/* 会员题标记：与难度徽章同排，形状一致、颜色更弱，不抢视觉重心 */
+.lc-paid {
+  flex: 0 0 auto;
+  font-size: 10.5px;
+  line-height: 1;
+  padding: 2px 5px;
+  border-radius: var(--lct-r-pill);
+  border: 1px solid color-mix(in srgb, var(--lct-warn) 30%, transparent);
+  background: var(--lct-warn-bg);
+  color: var(--lct-warn);
+  white-space: nowrap;
+}
+
 .lc-tags {
   flex: 0 1 300px;
   min-width: 0;
