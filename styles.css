@@ -457,7 +457,6 @@ body.theme-dark .lc-dash-root {
 }
 
 .lc-id {
-  position: relative;
   flex: 0 0 46px;
   font-family: var(--lct-mono);
   font-variant-numeric: tabular-nums;
@@ -525,20 +524,40 @@ body.theme-dark .lc-dash-root {
   border-color: color-mix(in srgb, var(--lct-err) 26%, transparent);
 }
 
-/* 会员锁：绝对定位在题号列内，不参与布局，任何列的位置都保持原样 */
-.lc-lock {
-  position: absolute;
-  left: 1px;
-  top: 50%;
-  transform: translateY(-50%);
-  display: flex;
-  align-items: center;
-  color: var(--lct-warn);
+/* 会员题：状态点换成锁，颜色仍然是状态色——实心=已刷、半实=以前做过、空心=未刷 */
+.lc-mark.is-lock::before {
+  display: none;
 }
-.lc-lock svg {
-  width: 11px;
-  height: 11px;
+.lc-mark.is-lock svg {
+  width: 12px;
+  height: 12px;
   stroke-width: 2;
+  box-sizing: border-box;
+}
+/* 未刷：空心灰锁 */
+.lc-mark.is-lock svg rect {
+  fill: none;
+  stroke: var(--lct-border-strong);
+}
+.lc-mark.is-lock svg path {
+  fill: none;
+  stroke: var(--lct-border-strong);
+}
+/* 已刷：实心绿锁 */
+.lc-row--done .lc-mark.is-lock svg rect {
+  fill: var(--lct-ok);
+  stroke: var(--lct-ok);
+}
+.lc-row--done .lc-mark.is-lock svg path {
+  stroke: var(--lct-ok);
+}
+/* 以前做过：半实橙锁 */
+.lc-row--stale .lc-mark.is-lock svg rect {
+  fill: color-mix(in srgb, var(--lct-warn) 45%, transparent);
+  stroke: var(--lct-warn);
+}
+.lc-row--stale .lc-mark.is-lock svg path {
+  stroke: var(--lct-warn);
 }
 
 .lc-tags {

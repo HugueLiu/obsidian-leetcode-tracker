@@ -553,21 +553,20 @@ export class ProblemListView extends ItemView {
     main.className = "lc-row-main";
     row.appendChild(main);
 
-    // 状态点由 CSS 画形状（实心/半实/空心），不依赖字体里的符号
+    // 状态点由 CSS 画形状（实心/半实/空心），不依赖字体里的符号；
+    // 会员题把这个点换成同色系的锁，颜色继续承担状态语义
     const mark = main.createDiv({ cls: "lc-mark" });
     mark.setAttr(
       "aria-label",
       vm.status === "done" ? "已刷" : vm.status === "stale" ? "以前做过" : "未刷"
     );
-
-    // 会员锁挂在题号列内部：题号右对齐，锁悬在它左侧的空白处，
-    // 不新增 flex 子元素，所以状态点到题号、以及后面所有列的位置都不动
-    const idEl = main.createDiv({ cls: "lc-id", text: p.frontendId });
     if (p.paidOnly) {
-      const lock = idEl.createSpan({ cls: "lc-lock" });
-      setIcon(lock, "lock");
-      lock.setAttr("aria-label", "会员题");
+      mark.addClass("is-lock");
+      setIcon(mark, "lock");
+      mark.setAttr("aria-label", `会员题 · ${mark.getAttribute("aria-label")}`);
     }
+
+    main.createDiv({ cls: "lc-id", text: p.frontendId });
     const titleWrap = main.createDiv({ cls: "lc-title-cell" });
     titleWrap.createDiv({ cls: "lc-title-main", text: p.titleCn || p.title });
     if (p.titleCn && p.title) {
