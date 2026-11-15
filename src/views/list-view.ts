@@ -35,7 +35,8 @@ interface RowVM {
   submitCount: number;
 }
 
-type StatusFilter = "all" | "done" | "notDone" | "stale";
+/** pending = 本轮没做，包含从未通过的题和以前通过过的题 */
+type StatusFilter = "all" | "done" | "notDone" | "stale" | "pending";
 
 function fmtDate(ts: number): string {
   if (!ts) return "";
@@ -175,11 +176,13 @@ export class ProblemListView extends ItemView {
 
     // 状态 tab
     const tabs = root.createDiv({ cls: "lc-tabs" });
+    // 四个 tab 统一到「本轮」这一个坐标：已刷 = 本轮做的，本轮未做 = 剩下的全部，
+    // 「以前做过」是「本轮未做」里需要重刷的那部分（子集，不是并列项）
     const defs: { key: StatusFilter; label: string }[] = [
       { key: "all", label: "全部" },
-      { key: "notDone", label: "未刷" },
+      { key: "pending", label: "本轮未做" },
       { key: "done", label: "已刷" },
-      { key: "stale", label: "仅历史" },
+      { key: "stale", label: "以前做过" },
     ];
     for (const d of defs) {
       const t = tabs.createDiv({ cls: "lc-tab", text: d.label });
@@ -394,8 +397,14 @@ export class ProblemListView extends ItemView {
       if (p.paidOnly && !showPaid) return false;
       if (p.retired) return false;
 
-      if (statusF !== "all" && r.status !== statusF) return false;
-      if (statusF !== "stale" && r.status === "stale" && !showStale) return false;
+      // 「本轮未做」收的是从未通过和以前通过过两类，后者不属于本轮
+      if (statusF === "pending") {
+        if (r.status !== "notDone" && r.status !== "stale") return false;
+      } else if (statusF !== "all" && r.status !== statusF) {
+        return false;
+      }
+      // 切到「以前做过」或「本轮未做」时穿透 showStale：这两个入口本身就是为看这些题
+      if (statusF !== "stale" && statusF !== "pending" && r.status === "stale" && !showStale) return false;
       if (diffF !== "all" && p.difficulty !== diffF) return false;
       if (tagF !== "all" && !p.tags.includes(tagF)) return false;
 
@@ -438,10 +447,11 @@ export class ProblemListView extends ItemView {
       this.subtitle.setText(`累计 ${ever} 道`);
     }
 
-    // 四类题直接以数字摆在 tab 上：全部 / 未刷 / 已刷 / 仅历史，
-    // 不再用一句话解释重置线把多少题排除了
+    // 数字直接摆在 tab 上，口径靠自身闭合：已刷 + 本轮未做 = 全部
     const counts: Record<string, number> = { all: visible.length, done: 0, notDone: 0, stale: 0 };
     for (const r of visible) counts[r.status] = (counts[r.status] ?? 0) + 1;
+    // 13 + 3695 = 3708，让 tab 上的数字自己闭合
+    counts.pending = counts.notDone + counts.stale;
     for (const [key, el] of Object.entries(this.statusTabs)) {
       el.toggleClass("is-active", this.filterStatus === key);
       el.querySelector(".lc-tab-count")?.setText(String(counts[key] ?? 0));
@@ -547,7 +557,7 @@ export class ProblemListView extends ItemView {
     const mark = main.createDiv({ cls: "lc-mark" });
     mark.setAttr(
       "aria-label",
-      vm.status === "done" ? "已刷" : vm.status === "stale" ? "仅历史" : "未刷"
+      vm.status === "done" ? "已刷" : vm.status === "stale" ? "以前做过" : "未刷"
     );
 
     main.createDiv({ cls: "lc-id", text: p.frontendId });

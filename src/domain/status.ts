@@ -51,7 +51,7 @@ export class StatusResolver {
       return stat.lastAcAt > this.baseline(slug) ? "done" : "stale";
     }
     // 本地没有 AC 时间戳，但力扣确认这题 AC 过 —— 说明那次通过发生在
-    // 提交记录窗口（最近 2000 条）之外。设过重置线就无法确认先后，按"仅历史"算，
+    // 提交记录窗口（最近 2000 条）之外。设过重置线就无法确认先后，按「以前做过」算，
     // 用户可在右键里手动标记为已刷；没设过重置线则一律算已刷。
     if (this.acKnown.has(slug)) {
       return this.baseline(slug) > 0 ? "stale" : "done";

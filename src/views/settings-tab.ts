@@ -133,8 +133,8 @@ export class TrackerSettingTab extends PluginSettingTab {
       );
 
     new Setting(containerEl)
-      .setName("显示「仅历史」的题")
-      .setDesc("做过、但通过时间早于重置线的题，以 ◐ 灰显。关掉则完全按未刷处理。")
+      .setName("显示以前做过的题")
+      .setDesc("通过时间早于重置线的题，以 ◐ 灰显。关掉则完全按未刷处理。")
       .addToggle((t) =>
         t.setValue(this.plugin.data.settings.showStale).onChange(async (v) => {
           this.plugin.data.settings.showStale = v;

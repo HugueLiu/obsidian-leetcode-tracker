@@ -185,7 +185,7 @@ async function main(): Promise<void> {
   const now = T2026;
   reset.perSlugBaseline["two-sum"] = now;
   resolver.apply(reset);
-  assert(resolver.status("two-sum", records2.stat("two-sum")) === "stale", "重置后旧 AC 应降级为「仅历史」");
+  assert(resolver.status("two-sum", records2.stat("two-sum")) === "stale", "重置后旧 AC 应降级为「以前做过」");
   assert(resolver.isDone("two-sum", records2.stat("two-sum")) === false, "重置后 isDone 必须为 false");
 
   // 重置后再做一遍 → 自动翻回已刷
@@ -222,7 +222,7 @@ async function main(): Promise<void> {
   gated.setAcKnown(new Set(["an-old-ac"]));
   assert(
     gated.status("an-old-ac", EMPTY_STAT) === "stale",
-    "有重置线且无时间戳时无法确认先后，按「仅历史」而非已刷"
+    "有重置线且无时间戳时无法确认先后，按「以前做过」而非已刷"
   );
   assert(
     gated.status("an-old-ac", { ...EMPTY_STAT, lastAcAt: T2026 + 100 }) === "done",
